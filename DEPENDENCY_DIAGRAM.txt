@@ -1,0 +1,349 @@
+================================================================================
+  DEPENDENCY ARCHITECTURE DIAGRAM
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         APPLICATION DEPENDENCY TREE                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                                    config.json
+                                        │
+                ┌───────────────────────┼───────────────────────┐
+                │                       │                       │
+           MEDICINE                  WEATHER                POMODORO
+           APP (516)                 APP (170)              APP (288)
+                │                       │                       │
+                └───┬───────────────────┼───────────────────────┘
+                    │
+           medicine_data.json      [JSON CONFIG LOADING]
+                
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      EXTERNAL API DEPENDENCIES                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+FLIGHTS_APP (605)
+    │
+    ├─ FlightRadar24 API
+    │   ├─ Search: data-cloud.flightradar24.com/zones/fcgi/feed.js
+    │   └─ Details: data-live.flightradar24.com/clickhandler
+    │
+    └─ /tmp/flights_cache.json (fallback)
+
+DISNEY_APP (292)
+    │
+    ├─ queue-times.com API
+    │   └─ /parks/6/queue_times.json (Magic Kingdom)
+    │
+    └─ disney_images/ (PNG backgrounds - 6 lands)
+        ├─ Adventureland.png
+        ├─ Fantasyland.png
+        ├─ Tomorrowland.png
+        ├─ Frontierland.png
+        ├─ Main Street U.S.A..png
+        └─ Liberty Square.png
+
+MBTA_APP (267)
+    │
+    └─ MBTA API v3
+        ├─ /predictions (train times)
+        └─ /alerts (system status)
+
+WEATHER_APP (170)
+    │
+    └─ wttr.in API
+        └─ /{LOCATION}?format=...
+
+REBOOT_APP (100)
+    │
+    └─ System call: sudo reboot
+
+FORBIDDEN_APP (75)
+    │
+    └─ config.json ["forbidden"]["message"]
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       INTERNAL MODULE DEPENDENCIES                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[MENU SYSTEMS]
+    │
+    ├─ menu_button.py (276)
+    │   │
+    │   ├─ Imports ALL 8 apps
+    │   │   ├─ forbidden_app
+    │   │   ├─ weather_cal_app
+    │   │   ├─ reboot_app
+    │   │   ├─ flights_app
+    │   │   ├─ pomodoro_app
+    │   │   ├─ disney_app
+    │   │   ├─ mbta_app
+    │   │   └─ medicine_app
+    │   │
+    │   ├─ gpiozero.Button (GPIO 3)
+    │   ├─ TP_lib.epd2in13_V4
+    │   └─ config.json (app registry)
+    │
+    └─ menu_simple.py (237)
+        │
+        ├─ Imports 7 apps (no medicine)
+        ├─ TP_lib.gt1151 (touch driver)
+        ├─ TP_lib.epd2in13_V3
+        └─ icons/ (BMP files)
+            ├─ calendar.bmp
+            ├─ flight.bmp
+            ├─ mbta.bmp
+            ├─ disney.bmp
+            ├─ clock.bmp
+            ├─ reboot.bmp
+            └─ forbidden.bmp
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    HARDWARE & DRIVER DEPENDENCIES                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+HARDWARE LAYER
+    │
+    ├─ E-Paper Display (2.13" 250x122)
+    │   │
+    │   └─ TP_lib.epd2in13_V4 / epd2in13_V3
+    │       └─ Uses: PIL/Pillow (Image, ImageDraw, ImageFont)
+    │
+    ├─ Touch Controller (GT1151)
+    │   │
+    │   └─ TP_lib.gt1151
+    │       ├─ I2C interface
+    │       └─ GPIO INT on pin 27
+    │
+    ├─ GPIO Button (GPIO 3)
+    │   │
+    │   └─ gpiozero.Button
+    │       └─ Pull-up, bounce_time=0.1s
+    │
+    └─ System I/O
+        └─ subprocess (curl for API calls)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              SHARED LIBRARY DEPENDENCIES (Built-in)                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ALL APPS DEPEND ON:
+    ├─ sys          (path manipulation)
+    ├─ os           (path operations)
+    ├─ time         (timing, sleep)
+    ├─ datetime     (date/time operations)
+    ├─ json         (config/data serialization)
+    ├─ logging      (event logging)
+    ├─ threading    (background threads)
+    └─ subprocess   (curl execution)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CIRCULAR DEPENDENCY ANALYSIS                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+FOUND: No circular dependencies
+  ✓ Apps don't import each other
+  ✓ Apps don't import menu systems
+  ✓ Menu systems import apps (one-way)
+  ✓ Drivers are isolated
+
+HOWEVER:
+  ✗ All apps tightly coupled to config.json structure
+  ✗ Menu systems hardcoded to app names in imports
+  ✗ Apps hardcoded to file paths
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        DEPENDENCY METRICS                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+EXTERNAL API CALLS
+  flights_app:      2 API endpoints (search + details)
+  disney_app:       1 API endpoint (queue-times.com)
+  mbta_app:         2 API endpoints (predictions + alerts)
+  weather_app:      1 API endpoint (wttr.in)
+  pomodoro_app:     0 (local only)
+  medicine_app:     0 (local only)
+  forbidden_app:    0 (local only)
+  reboot_app:       0 (local only)
+
+EXTERNAL FILE DEPENDENCIES
+  flights_app:      /tmp/flights_cache.json (fallback)
+  disney_app:       6 PNG files (backgrounds)
+  menu_button.py:   0 (all icons via config)
+  menu_simple.py:   7 BMP icon files
+  all_apps:         config.json (required)
+  medicine_app:     medicine_data.json (data file)
+
+INTERNAL DEPENDENCIES (by count)
+  config.json:      Referenced by 11 modules
+  menu_button.py:   Calls 8 app functions
+  menu_simple.py:   Calls 7 app functions
+  epd2in13_V4:      Used by all apps
+  TP_lib:           Used by all apps
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                   IMPORT GRAPH (Text representation)                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+menu_button.py:
+    import sys, os, time, threading
+    from datetime import datetime
+    from gpiozero import Button
+    import logging
+    from TP_lib import epd2in13_V4
+    from PIL import Image, ImageDraw, ImageFont
+    import forbidden_app, weather_cal_app, reboot_app, flights_app
+    import pomodoro_app, disney_app, mbta_app, medicine_app
+
+menu_simple.py:
+    import sys, os, time
+    from TP_lib import gt1151, epd2in13_V3
+    from PIL import Image, ImageDraw, ImageFont
+    import logging, threading
+    import forbidden_app, weather_cal_app, reboot_app, flights_app
+    import pomodoro_app, disney_app, mbta_app, medicine_app
+
+All apps:
+    import sys, os, time, json
+    from datetime import datetime
+    from TP_lib import gt1151, epd2in13_V3/V4
+    from PIL import Image, ImageDraw, ImageFont
+    import logging, threading
+    [+ subprocess for API apps]
+    [+ math for calculations]
+    [+ random for shuffling]
+
+web_config.py:
+    (1,275 lines - not fully analyzed)
+    Likely imports: Flask/HTTP server, json, os, subprocess
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                  DEPENDENCY COUPLING ANALYSIS                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TIGHT COUPLING (High Risk)
+  ✗ Apps tightly coupled to config.json structure
+  ✗ Menu systems hardcoded to app function names
+  ✗ File paths hardcoded in apps (/home/pizero2w/pizero_apps/)
+  ✗ Apps expect specific display object interface (epd)
+  ✗ Apps expect specific touch object interface (gt_dev, gt_old, gt)
+
+LOOSE COUPLING (Good)
+  ✓ Apps don't import each other
+  ✓ Apps don't share state (except via gt_dev)
+  ✓ Apps independently implement display logic
+  ✓ Apps independently handle input
+
+MISSING ABSTRACTIONS
+  ✗ No abstract base for apps
+  ✗ No configuration loader abstraction
+  ✗ No display adapter (direct TP_lib usage)
+  ✗ No menu interface
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    DATA FLOW ARCHITECTURE                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+STATIC DATA (config.json)
+    │
+    ├─ [MEMORY] Loaded once at app startup
+    ├─ [REFERENCE] Read-only during app execution
+    └─ [PERSISTENCE] Not modified by apps (except web_config.py)
+
+DYNAMIC DATA (medicine_data.json, cache files)
+    │
+    ├─ [WRITE] Apps write tracking data periodically
+    ├─ [READ] Apps read current state on each update
+    ├─ [TIMESTAMP] medicine_app uses last_updated for cache invalidation
+    └─ [CLEANUP] Old tracking data never pruned (risk: file grows)
+
+RUNTIME STATE (in-memory)
+    │
+    ├─ [LOCAL] Each app maintains independent state
+    ├─ [SHARED] gt_dev object passes signals between menu & app
+    ├─ [EPHEMERAL] State lost on app exit
+    └─ [THREAD-SAFE] No synchronization (potential race conditions)
+
+EXTERNAL STATE (API servers)
+    │
+    ├─ [FETCH] Periodic HTTP requests to external APIs
+    ├─ [CACHE] Some apps cache responses locally
+    ├─ [TIMEOUT] Network failures result in error screens
+    └─ [FALLBACK] Some apps show last known good data
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              REFACTORING IMPACT ANALYSIS                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+IF WE CREATE BaseApp CLASS:
+    Impact on menu systems:
+        - Can use introspection to discover apps
+        - Reduces coupling (no need to import each app)
+        - Can support dynamic app loading
+    Impact on apps:
+        - Reduced code duplication (~150 lines saved per app)
+        - Easier to test in isolation
+        - More consistent behavior
+
+IF WE CREATE MenuInterface ABSTRACTION:
+    Impact on menu systems:
+        - Both menus become drop-in replaceable
+        - Can test each independently
+        - Easier to add new menu types
+    Impact on apps:
+        - No changes needed (good!)
+
+IF WE FIX HARDCODED PATHS:
+    Impact on deployment:
+        - Can run tests easily
+        - Can deploy to any path
+        - Can run multiple instances
+    Impact on configuration:
+        - Requires ENV variables or config file
+        - Minimal code changes
+
+IF WE ADD HEALTH MONITORING:
+    Impact on reliability:
+        - Can detect app crashes
+        - Can retry failed launches
+        - Can log failure reasons
+    Impact on performance:
+        - Minimal overhead (<1MB, <1% CPU)
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DEPENDENCY SUMMARY                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Total External Dependencies:
+    • Python standard library: 11 modules
+    • Third-party libraries: 3 (PIL/Pillow, gpiozero, TP_lib)
+    • External APIs: 4 endpoints (flights, disney, mbta, weather)
+    • External files: 14 (6 PNG, 7 BMP, 1 JSON config, cache)
+    • Hardware: 3 devices (display, touch, button)
+
+Lines of Code by Dependency Type:
+    • Standard library usage: ~40%
+    • TP_lib usage: ~30%
+    • PIL usage: ~20%
+    • Business logic: ~10%
+
+Risk Assessment:
+    • Low: Standard library (stable, built-in)
+    • Low: TP_lib (custom, tightly integrated)
+    • Medium: PIL/Pillow (third-party, version dependent)
+    • Medium: gpiozero (third-party, hardware dependent)
+    • High: External APIs (network dependent, rate limited)
+    • Medium: Local files (hardcoded paths)
+
+Recommendation: Encapsulate external dependencies in adapter layer
+

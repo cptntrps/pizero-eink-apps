@@ -1,0 +1,45 @@
+[Unit]
+Description=Pi Zero 2W Web Server Service (Flask API)
+Documentation=file:///home/pi/pizerowgpio/docs/SYSTEMD_SERVICES.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/pizerowgpio
+
+# Environment variables
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+Environment="FLASK_ENV=production"
+Environment="FLASK_APP=run_api.py"
+Environment="FLASK_HOST=0.0.0.0"
+Environment="FLASK_PORT=5000"
+Environment="FLASK_DEBUG=False"
+
+# Start the web server
+ExecStart=/usr/bin/python3 /home/pi/pizerowgpio/run_api.py
+
+# Restart policy
+Restart=always
+RestartSec=5
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pizero-web
+
+# Timeout settings
+TimeoutStartSec=30
+TimeoutStopSec=10
+
+# Security and permissions
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

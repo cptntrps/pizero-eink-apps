@@ -1,0 +1,15 @@
+[Unit]
+Description=Pi Zero 2W Medicine Tracker Web UI
+After=network.target
+
+[Service]
+Type=simple
+User=pizero2w
+Group=pizero2w
+WorkingDirectory=/home/pizero2w/pizero_apps
+ExecStart=/usr/bin/python3 /home/pizero2w/pizero_apps/web_config.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

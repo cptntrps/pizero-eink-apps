@@ -1,0 +1,140 @@
+[MASTER]
+# Add files or directories to the blacklist. They should be base names, not
+# paths.
+ignore=CVS,.git,tests,venv,.venv
+
+# Use multiple processes to speed up Pylint.
+jobs=4
+
+# List of plugins (as comma separated).
+load-plugins=
+
+[MESSAGES CONTROL]
+# Only show warnings with the listed confidence levels. Leave empty to show
+# all. Valid levels: HIGH, INFERENCE, INFERENCE_FAILURE, UNDEFINED.
+confidence=
+
+# Disable the message, report, category or checker with the given id(s). You
+# can either give multiple identifier separated by comma (,) or put this
+# option multiple times (only on the command line, not in the configuration
+# file where it should appear only once). You can also use "--disable=all" to
+# disable everything first and then reenable specific checks. For example, if
+# you want to run only the similarities checker, you can use "--disable=all
+# --enable=similarities". If you want to run only the classes checker, but have
+# no Warning level messages displayed, use "--disable=all --enable=classes
+# --disable=W".
+
+disable=
+    # Convention/Style issues that are overly strict
+    invalid-name,               # Too strict on variable naming
+    redefined-outer-name,       # Often occurs in nested scopes
+    too-few-public-methods,     # Some classes are data containers
+    no-else-return,             # Personal style preference
+    fixme,                       # TODOs are useful during development
+
+    # Design issues that are too strict
+    too-many-arguments,         # Sometimes necessary for complex operations
+    too-many-positional-arguments, # Same as above
+    too-many-locals,            # Legitimate for complex functions
+    too-many-instance-attributes, # Some classes have many attributes
+    too-many-branches,          # Some logic is complex
+    too-many-statements,        # Some functions need to be longer
+
+    # Docstring issues
+    missing-function-docstring, # Will focus on public APIs
+    missing-module-docstring,   # Most modules have module-level docstrings
+    missing-class-docstring,    # Most classes have docstrings
+
+    # Other practical issues
+    duplicate-code,             # Common in similar functions
+
+[FORMAT]
+# Maximum number of characters on a single line.
+max-line-length=99
+
+# Regular expression matching correct function names. Overrides naming-style.
+function-rgx=[a-z_][a-z0-9_]*$
+
+# Regular expression matching correct variable names. Overrides naming-style.
+variable-rgx=[a-z_][a-z0-9_]*$
+
+# Regular expression matching correct constant names. Overrides naming-style.
+const-rgx=(([A-Z_][A-Z0-9_]*)|([a-z_][a-z0-9_]*)|(__.*__))$
+
+# Indent string
+indent-string='    '
+
+[LOGGING]
+# The type of string formatting that logging methods do. `old` for %
+# formatting, `new` for {} formatting and `fstring` for f-strings.
+logging-format-style=old
+
+# Logging modules to check that the string format arguments are in logging
+# function parameter format
+logging-modules=logging
+
+[BASIC]
+# Good variable names which should always be accepted, separated by a comma
+good-names=i,j,k,ex,Run,_,e
+
+[CLASSES]
+# List of method names used to declare an abstract method. The naming style of
+# these function names should be consistent with `function-naming-style`.
+defining-attr-methods=__init__,__new__,setUp,__post_init__
+
+[IMPORTS]
+# A comma-separated list of package names where extension modules may be
+# loaded from. Note that source code may not use these modules. It is used by
+# the import checker to determine whether a module name is part of the standard
+# compatibility libraries or a third party package.
+extension-pkg-allow-list=PIL,flask,werkzeug,flask_cors
+
+# Force import order to recognize a module as part of a standard
+# compatibility library.
+known-standard-library=os,sys,time,logging,json,datetime,threading,sqlite3,argparse
+
+# Force import order to recognize a module as part of the future
+# compatibility libraries.
+known-future-library=
+
+# Force import order to recognize a module as being part of a third party
+# library.
+known-third-party=PIL,flask,werkzeug,flask_cors,pytest
+
+[SIMILARITIES]
+# Comments are removed from the similarity computation
+ignore-comments=yes
+
+# Docstrings are removed from the similarity computation
+ignore-docstrings=yes
+
+# Imports are removed from the similarity computation
+ignore-imports=yes
+
+# Minimum lines number of a similarity.
+min-similarity-lines=4
+
+[VARIABLES]
+# List of strings which can be used on the first line of a module to
+# declare the module's docstring encoding.
+encoding-declarations=
+
+# Tells whether unused global variables should be treated as a violation.
+allow-global-unused-variables=yes
+
+# List of qualified module names which can have objects that can change
+# during runtime and triggers non-fatal errors.
+callbacks=cb_,_cb
+
+# List of strings which can identify a callback function by name. A callback
+# name must start or end with one of those strings.
+dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|^dummy_|^unused_
+
+[EXCEPTIONS]
+# Exceptions that will emit a message when caught.
+overgeneral-exceptions=BaseException,Exception
+
+[TYPING]
+# Set the maximum number of positional arguments accepted for function
+# definitions
+max-positional-arguments=5

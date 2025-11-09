@@ -1,0 +1,46 @@
+# Code ownership and review requirements
+# Each PR should be reviewed by the code owners
+
+# Global owners
+* @maintainer
+
+# Documentation
+*.md @maintainer
+/docs/ @maintainer
+/CONTRIBUTING.md @maintainer
+/CODE_OF_CONDUCT.md @maintainer
+/SECURITY.md @maintainer
+
+# Display components
+/display/ @maintainer
+
+# API endpoints
+/api/ @maintainer
+
+# Medicine app and related
+/medicine_app.py @maintainer
+/db/ @maintainer
+
+# Configuration
+/config/ @maintainer
+/.github/ @maintainer
+
+# CI/CD and testing
+/tests/ @maintainer
+/.github/workflows/ @maintainer
+/requirements*.txt @maintainer
+
+# Individual apps
+/weather_cal_app.py @maintainer
+/mbta_app.py @maintainer
+/disney_app.py @maintainer
+/flights_app.py @maintainer
+/pomodoro_app.py @maintainer
+/forbidden_app.py @maintainer
+/reboot_app.py @maintainer
+
+# Web UI
+/web/ @maintainer
+
+# Scripts and utilities
+/scripts/ @maintainer

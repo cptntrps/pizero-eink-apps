@@ -1,0 +1,53 @@
+{
+  "profiles": {
+    "touch": {
+      "name": "Waveshare 2.13\" with Touch",
+      "description": "GT1151 resistive touchscreen",
+      "input_mode": "touch",
+      "hardware": {
+        "display": {
+          "model": "2in13_V4",
+          "has_touch": true,
+          "touch_driver": "GT1151",
+          "int_pin": 27
+        },
+        "touch": {
+          "enabled": true,
+          "driver": "GT",
+          "int_pin": 27,
+          "i2c_address": "0x5D"
+        },
+        "button": {
+          "enabled": false
+        }
+      }
+    },
+    "button": {
+      "name": "Waveshare 2.13\" with PiSugar Button",
+      "description": "Button-only input via GPIO 3",
+      "input_mode": "button",
+      "hardware": {
+        "display": {
+          "model": "2in13_V4",
+          "has_touch": false
+        },
+        "button": {
+          "enabled": true,
+          "gpio_pin": 3,
+          "long_press_threshold": 2.0,
+          "bounce_time": 0.1,
+          "pull_up": true
+        },
+        "touch": {
+          "enabled": false
+        }
+      }
+    },
+    "auto": {
+      "name": "Auto-detect",
+      "description": "Automatically detect hardware configuration",
+      "input_mode": "auto"
+    }
+  },
+  "default_profile": "auto"
+}

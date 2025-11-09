@@ -1,0 +1,113 @@
+{
+  "environment": "development",
+  "debug": true,
+  "log_level": "DEBUG",
+  "hardware": {
+    "profile": "auto",
+    "input_mode": "auto",
+    "touch": {
+      "enabled": true,
+      "driver": "GT",
+      "int_pin": 27,
+      "i2c_address": "0x5D"
+    },
+    "button": {
+      "gpio_pin": 3,
+      "long_press_threshold": 2.0,
+      "bounce_time": 0.1,
+      "pull_up": true
+    },
+    "display": {
+      "model": "2in13_V4",
+      "has_touch": null
+    }
+  },
+  "disney": {
+    "park_id": 6,
+    "park_name": "Magic Kingdom",
+    "update_interval": 10,
+    "data_refresh_rides": 20,
+    "sort_by": "wait_time",
+    "show_closed": false,
+    "favorite_rides": [],
+    "api_timeout": 10
+  },
+  "flights": {
+    "latitude": 40.716389,
+    "longitude": -73.954167,
+    "radius_km": 15,
+    "update_interval": 15,
+    "min_altitude": 0,
+    "max_altitude": 10000,
+    "show_details": true,
+    "api_timeout": 10
+  },
+  "forbidden": {
+    "message": "Alem de viado eh curioso ein!"
+  },
+  "medicine": {
+    "data_file": "./medicine_data.json",
+    "update_interval": 60,
+    "reminder_window": 30,
+    "alert_upcoming_minutes": 15,
+    "rotate_interval": 3,
+    "enable_backups": true,
+    "backup_interval": 60
+  },
+  "menu": {
+    "apps": [
+      {
+        "id": "medicine",
+        "name": "Medicine",
+        "enabled": true,
+        "order": 1
+      },
+      {
+        "id": "disney",
+        "name": "Disney",
+        "enabled": true,
+        "order": 2
+      },
+      {
+        "id": "flights",
+        "name": "Flights",
+        "enabled": true,
+        "order": 3
+      },
+      {
+        "id": "forbidden",
+        "name": "Forbidden",
+        "enabled": true,
+        "order": 4
+      },
+      {
+        "id": "reboot",
+        "name": "Reboot",
+        "enabled": true,
+        "order": 5
+      }
+    ],
+    "button_hold_time": 2.0,
+    "scroll_speed": 0.5
+  },
+  "system": {
+    "wifi_ssid": "",
+    "wifi_password": "",
+    "hotspot_enabled": false,
+    "hotspot_ssid": "PiZero-Config",
+    "hotspot_password": "raspberry",
+    "display_brightness": 100,
+    "timezone": "America/New_York",
+    "auto_sleep": false,
+    "sleep_timeout": 300,
+    "base_dir": "./",
+    "enable_metrics": true
+  },
+  "display": {
+    "rotation": 0,
+    "invert_colors": false,
+    "refresh_mode": "auto",
+    "partial_update_limit": 10,
+    "debug_mode": true
+  }
+}

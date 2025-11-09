@@ -1,0 +1,112 @@
+{
+  "environment": "test",
+  "debug": true,
+  "log_level": "INFO",
+  "weather": {
+    "location": "Test City",
+    "units": "metric",
+    "update_interval": 60,
+    "display_format": "compact",
+    "show_forecast": false,
+    "api_timeout": 1
+  },
+  "mbta": {
+    "home_station_id": "place-davis",
+    "home_station_name": "Davis Square",
+    "work_station_id": "place-pktrm",
+    "work_station_name": "Park Street",
+    "update_interval": 10,
+    "morning_start": "06:00",
+    "morning_end": "12:00",
+    "evening_start": "15:00",
+    "evening_end": "21:00",
+    "show_delays": false,
+    "max_predictions": 1,
+    "api_timeout": 1
+  },
+  "disney": {
+    "park_id": 6,
+    "park_name": "Magic Kingdom",
+    "update_interval": 5,
+    "data_refresh_rides": 10,
+    "sort_by": "wait_time",
+    "show_closed": false,
+    "favorite_rides": [],
+    "api_timeout": 1
+  },
+  "flights": {
+    "latitude": 40.716389,
+    "longitude": -73.954167,
+    "radius_km": 15,
+    "update_interval": 5,
+    "min_altitude": 0,
+    "max_altitude": 10000,
+    "show_details": false,
+    "api_timeout": 1
+  },
+  "pomodoro": {
+    "work_duration": 60,
+    "short_break": 30,
+    "long_break": 60,
+    "sessions_until_long_break": 4,
+    "auto_start_breaks": false,
+    "auto_start_pomodoros": false,
+    "sound_enabled": false
+  },
+  "forbidden": {
+    "message": "Test message"
+  },
+  "medicine": {
+    "data_file": "./test_medicine_data.json",
+    "update_interval": 5,
+    "reminder_window": 30,
+    "alert_upcoming_minutes": 15,
+    "rotate_interval": 1,
+    "enable_backups": false,
+    "backup_interval": 30
+  },
+  "menu": {
+    "apps": [
+      {
+        "id": "medicine",
+        "name": "Medicine",
+        "enabled": true,
+        "order": 1
+      },
+      {
+        "id": "weather",
+        "name": "Weather",
+        "enabled": true,
+        "order": 2
+      },
+      {
+        "id": "pomodoro",
+        "name": "Pomodoro",
+        "enabled": false,
+        "order": 3
+      }
+    ],
+    "button_hold_time": 0.5,
+    "scroll_speed": 0.5
+  },
+  "system": {
+    "wifi_ssid": "TEST-NETWORK",
+    "wifi_password": "test-password",
+    "hotspot_enabled": false,
+    "hotspot_ssid": "PiZero-Test",
+    "hotspot_password": "testpass",
+    "display_brightness": 50,
+    "timezone": "America/New_York",
+    "auto_sleep": false,
+    "sleep_timeout": 60,
+    "base_dir": "./test_data",
+    "enable_metrics": true
+  },
+  "display": {
+    "rotation": 0,
+    "invert_colors": false,
+    "refresh_mode": "auto",
+    "partial_update_limit": 5,
+    "debug_mode": true
+  }
+}

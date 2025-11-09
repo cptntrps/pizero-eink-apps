@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database (keep schema, ignore data)
+*.db
+!medicine.db
+
+# Logs
+*.log
+/tmp/
+*.tmp
+
+# Config (keep template, ignore secrets)
+config/secrets.yaml
+config/local.yaml
+
+# Test files
+test_*.py
+*_test.py
+
+# Temporary files
+*.bak
+*.backup
+.~*
+
+# E-ink display cache
+.epd_cache/

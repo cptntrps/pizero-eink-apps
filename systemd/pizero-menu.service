@@ -1,0 +1,41 @@
+[Unit]
+Description=Pi Zero 2W Menu System Service
+Documentation=file:///home/pi/pizerowgpio/docs/SYSTEMD_SERVICES.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/pizerowgpio
+
+# Environment variables
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+Environment="DISPLAY_TYPE=epd2in13_V4"
+
+# Start the menu service
+ExecStart=/usr/bin/python3 /home/pi/pizerowgpio/menu_button.py
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pizero-menu
+
+# Timeout settings
+TimeoutStartSec=30
+TimeoutStopSec=10
+
+# Security and permissions
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

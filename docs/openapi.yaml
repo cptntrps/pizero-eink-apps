@@ -1,0 +1,1511 @@
+openapi: 3.0.3
+info:
+  title: Pi Zero 2W Medicine Tracker API
+  description: |
+    RESTful API for medicine tracking and management on Pi Zero 2W.
+    This API provides endpoints for managing medicines, tracking adherence,
+    and configuring application settings.
+  version: 1.0.0
+  contact:
+    name: Pi Zero 2W Project
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Development server
+  - url: http://{hostname}:5000/api/v1
+    description: Pi Zero 2W device server
+    variables:
+      hostname:
+        default: pizero.local
+        description: Hostname or IP address of the Pi Zero 2W device
+
+tags:
+  - name: Health
+    description: Health check and API information endpoints
+  - name: Medicines
+    description: Medicine management endpoints (CRUD operations)
+  - name: Tracking
+    description: Medicine adherence tracking endpoints
+  - name: Configuration
+    description: Application configuration management
+
+paths:
+  /:
+    get:
+      tags:
+        - Health
+      summary: API Root Information
+      description: Get API version and available endpoints
+      operationId: apiRoot
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      version:
+                        type: string
+                        example: '1.0'
+                      name:
+                        type: string
+                        example: 'Pi Zero 2W Medicine Tracker API'
+                      endpoints:
+                        type: object
+                        properties:
+                          medicines:
+                            type: string
+                          tracking:
+                            type: string
+                          config:
+                            type: string
+                          health:
+                            type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health Check
+      description: Check API and database health status
+      operationId: healthCheck
+      responses:
+        '200':
+          description: System is healthy or degraded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [healthy, degraded]
+                      version:
+                        type: string
+                      database:
+                        type: string
+                        enum: [connected, disconnected, unknown]
+                      timestamp:
+                        type: string
+                        format: date-time
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+
+  /docs:
+    get:
+      tags:
+        - Health
+      summary: API Documentation
+      description: Get links to API documentation resources
+      operationId: apiDocs
+      responses:
+        '200':
+          description: Documentation links and resource information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      documentation:
+                        type: object
+                      resources:
+                        type: object
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+
+  /medicines:
+    get:
+      tags:
+        - Medicines
+      summary: List Medicines
+      description: Get list of medicines with optional filtering and pagination
+      operationId: listMedicines
+      parameters:
+        - name: active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+            default: true
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: per_page
+          in: query
+          description: Items per page (max 100)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+        - name: order
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Paginated list of medicines
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMedicineList'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Medicines
+      summary: Create Medicine
+      description: Create a new medicine
+      operationId: createMedicine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicineInput'
+            examples:
+              basic:
+                summary: Basic medicine
+                value:
+                  name: Aspirin
+                  dosage: 500mg
+                  frequency: Twice daily
+                  stock: 100
+              advanced:
+                summary: Advanced medicine with time windows
+                value:
+                  name: Metformin
+                  dosage: 1000mg
+                  frequency: Daily
+                  time_windows:
+                    - hour: 8
+                      minute: 0
+                    - hour: 20
+                      minute: 0
+                  stock: 60
+                  low_stock_threshold: 20
+      responses:
+        '201':
+          description: Medicine created successfully
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URL of created resource
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Medicine'
+                  message:
+                    type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate medicine ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /medicines/{medicineId}:
+    get:
+      tags:
+        - Medicines
+      summary: Get Medicine
+      description: Get a specific medicine by ID
+      operationId: getMedicine
+      parameters:
+        - name: medicineId
+          in: path
+          required: true
+          description: Medicine ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Medicine object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Medicine'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '404':
+          description: Medicine not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Medicines
+      summary: Update Medicine (Full)
+      description: Replace entire medicine (full update)
+      operationId: updateMedicine
+      parameters:
+        - name: medicineId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicineInput'
+      responses:
+        '200':
+          description: Medicine updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Medicine'
+                  message:
+                    type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Medicine not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Medicines
+      summary: Update Medicine (Partial)
+      description: Partial update of medicine (only specified fields)
+      operationId: patchMedicine
+      parameters:
+        - name: medicineId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Medicine updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Medicine'
+                  message:
+                    type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Medicine not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Medicines
+      summary: Delete Medicine
+      description: Delete a medicine
+      operationId: deleteMedicine
+      parameters:
+        - name: medicineId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Medicine deleted successfully
+        '404':
+          description: Medicine not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /medicines/pending:
+    get:
+      tags:
+        - Medicines
+      summary: Get Pending Medicines
+      description: Get medicines that are due now (within time window)
+      operationId: getPendingMedicines
+      parameters:
+        - name: date
+          in: query
+          description: Check date (YYYY-MM-DD format, default is today)
+          schema:
+            type: string
+            format: date
+        - name: time
+          in: query
+          description: Check time (HH:MM format, default is now)
+          schema:
+            type: string
+        - name: reminder_window
+          in: query
+          description: Minutes before/after window
+          schema:
+            type: integer
+            default: 30
+      responses:
+        '200':
+          description: List of pending medicines
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Medicine'
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      checked_at:
+                        type: string
+                        format: date-time
+                      reminder_window:
+                        type: integer
+                      timestamp:
+                        type: string
+                        format: date-time
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /medicines/low-stock:
+    get:
+      tags:
+        - Medicines
+      summary: Get Low Stock Medicines
+      description: Get medicines with low stock
+      operationId: getLowStockMedicines
+      responses:
+        '200':
+          description: List of low stock medicines
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Medicine'
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      timestamp:
+                        type: string
+                        format: date-time
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /medicines/{medicineId}/take:
+    post:
+      tags:
+        - Medicines
+      summary: Mark Medicine Taken
+      description: Mark a specific medicine as taken (convenience endpoint)
+      operationId: markMedicineTaken
+      parameters:
+        - name: medicineId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timestamp:
+                  type: string
+                  format: date-time
+                  description: Optional timestamp (defaults to now)
+      responses:
+        '201':
+          description: Medicine marked as taken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      medicine_id:
+                        type: string
+                      medicine_name:
+                        type: string
+                      pills_remaining:
+                        type: integer
+                      low_stock:
+                        type: boolean
+                      taken_at:
+                        type: string
+                        format: date-time
+                  message:
+                    type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '404':
+          description: Medicine not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /medicines/batch-take:
+    post:
+      tags:
+        - Medicines
+      summary: Mark Multiple Medicines Taken
+      description: Mark multiple medicines as taken (batch operation)
+      operationId: batchMarkTaken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - medicine_ids
+              properties:
+                medicine_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: List of medicine IDs to mark as taken
+                timestamp:
+                  type: string
+                  format: date-time
+                  description: Optional timestamp (defaults to now)
+            example:
+              medicine_ids:
+                - med_123
+                - med_456
+              timestamp: '2025-11-08T08:30:00'
+      responses:
+        '200':
+          description: Medicines marked as taken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      marked:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            pills_remaining:
+                              type: integer
+                            low_stock:
+                              type: boolean
+                      errors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            error:
+                              type: string
+                      timestamp:
+                        type: string
+                        format: date-time
+                  message:
+                    type: string
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      error_count:
+                        type: integer
+                      timestamp:
+                        type: string
+                        format: date-time
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /medicines/{medicineId}/tracking:
+    get:
+      tags:
+        - Tracking
+      summary: Get Medicine Tracking History
+      description: Get tracking history for a specific medicine
+      operationId: getMedicineTracking
+      parameters:
+        - name: medicineId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          description: Start date (YYYY-MM-DD format, optional)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: End date (YYYY-MM-DD format, optional)
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: per_page
+          in: query
+          description: Items per page (max 100)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated tracking history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTrackingList'
+        '400':
+          description: Invalid date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Medicine not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Tracking
+      summary: Mark Medicine Taken (Tracking)
+      description: Mark a specific medicine as taken (tracking endpoint)
+      operationId: markSpecificMedicineTaken
+      parameters:
+        - name: medicineId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timestamp:
+                  type: string
+                  format: date-time
+                  description: Optional timestamp (defaults to now)
+      responses:
+        '201':
+          description: Medicine marked as taken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      medicine_id:
+                        type: string
+                      medicine_name:
+                        type: string
+                      pills_remaining:
+                        type: integer
+                      low_stock:
+                        type: boolean
+                      taken_at:
+                        type: string
+                        format: date-time
+                  message:
+                    type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '404':
+          description: Medicine not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracking:
+    get:
+      tags:
+        - Tracking
+      summary: Get All Tracking
+      description: Get tracking history for all medicines with filtering
+      operationId: getAllTracking
+      parameters:
+        - name: medicine_id
+          in: query
+          description: Filter by medicine ID
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          description: Start date (YYYY-MM-DD format, optional)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: End date (YYYY-MM-DD format, optional)
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: per_page
+          in: query
+          description: Items per page (max 100)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated tracking history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTrackingList'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Tracking
+      summary: Batch Mark Medicines Taken
+      description: Mark multiple medicines as taken (batch operation)
+      operationId: batchMarkMedicinesTaken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - medicine_ids
+              properties:
+                medicine_ids:
+                  type: array
+                  items:
+                    type: string
+                timestamp:
+                  type: string
+                  format: date-time
+            example:
+              medicine_ids:
+                - med_123
+                - med_456
+      responses:
+        '200':
+          description: Medicines marked as taken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      marked:
+                        type: array
+                        items:
+                          type: object
+                      errors:
+                        type: array
+                        items:
+                          type: object
+                      timestamp:
+                        type: string
+                        format: date-time
+                  message:
+                    type: string
+                  meta:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      error_count:
+                        type: integer
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracking/today:
+    get:
+      tags:
+        - Tracking
+      summary: Get Today's Statistics
+      description: Get today's medicine adherence statistics
+      operationId: getTodayStats
+      parameters:
+        - name: date
+          in: query
+          description: Check date (YYYY-MM-DD format, default is today)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Today's statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      total_medicines:
+                        type: integer
+                      medicines_taken:
+                        type: integer
+                      medicines_pending:
+                        type: integer
+                      adherence_rate:
+                        type: number
+                        format: float
+                      low_stock_count:
+                        type: integer
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '400':
+          description: Invalid date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracking/stats:
+    get:
+      tags:
+        - Tracking
+      summary: Get Adherence Statistics
+      description: Get adherence statistics over a period
+      operationId: getAdherenceStats
+      parameters:
+        - name: start_date
+          in: query
+          description: Start date (YYYY-MM-DD, default is 7 days ago)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: End date (YYYY-MM-DD, default is today)
+          schema:
+            type: string
+            format: date
+        - name: medicine_id
+          in: query
+          description: Filter by medicine ID (optional)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Adherence statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      period:
+                        type: object
+                        properties:
+                          start_date:
+                            type: string
+                            format: date
+                          end_date:
+                            type: string
+                            format: date
+                          days:
+                            type: integer
+                      overall:
+                        type: object
+                        properties:
+                          total_records:
+                            type: integer
+                          taken_records:
+                            type: integer
+                          adherence_rate:
+                            type: number
+                            format: float
+                      daily:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            date:
+                              type: string
+                              format: date
+                            total:
+                              type: integer
+                            taken:
+                              type: integer
+                            adherence_rate:
+                              type: number
+                              format: float
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /config:
+    get:
+      tags:
+        - Configuration
+      summary: Get All Configuration
+      description: Get entire application configuration
+      operationId: getAllConfig
+      responses:
+        '200':
+          description: All configuration sections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    additionalProperties: true
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '500':
+          description: Error reading configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Configuration
+      summary: Update All Configuration
+      description: Replace entire application configuration
+      operationId: updateAllConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '400':
+          description: Invalid configuration data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error saving configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /config/{section}:
+    get:
+      tags:
+        - Configuration
+      summary: Get Configuration Section
+      description: Get specific configuration section
+      operationId: getConfigSection
+      parameters:
+        - name: section
+          in: path
+          required: true
+          description: Configuration section name (weather, mbta, disney, flights, pomodoro, forbidden, medicine, menu, system, display)
+          schema:
+            type: string
+            enum:
+              - weather
+              - mbta
+              - disney
+              - flights
+              - pomodoro
+              - forbidden
+              - medicine
+              - menu
+              - system
+              - display
+      responses:
+        '200':
+          description: Configuration section data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '404':
+          description: Section not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error reading configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Configuration
+      summary: Replace Configuration Section
+      description: Replace entire configuration section
+      operationId: replaceConfigSection
+      parameters:
+        - name: section
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Configuration section updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '400':
+          description: Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Section not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error saving configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Configuration
+      summary: Update Configuration Section (Partial)
+      description: Partial update of configuration section
+      operationId: patchConfigSection
+      parameters:
+        - name: section
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Configuration section updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                  message:
+                    type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '400':
+          description: Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Section not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error saving configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Medicine:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique medicine identifier
+        name:
+          type: string
+          description: Medicine name
+        dosage:
+          type: string
+          description: Medicine dosage
+        frequency:
+          type: string
+          description: How often to take
+        stock:
+          type: integer
+          description: Number of pills in stock
+        low_stock_threshold:
+          type: integer
+          description: Alert when stock falls below this value
+        time_windows:
+          type: array
+          items:
+            type: object
+            properties:
+              hour:
+                type: integer
+              minute:
+                type: integer
+          description: Scheduled times for taking medicine
+        active:
+          type: boolean
+          description: Whether medicine is currently active
+        created_at:
+          type: string
+          format: date-time
+          description: When medicine was added
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    MedicineInput:
+      type: object
+      required:
+        - name
+        - dosage
+        - frequency
+        - stock
+      properties:
+        name:
+          type: string
+          description: Medicine name
+        dosage:
+          type: string
+          description: Medicine dosage
+        frequency:
+          type: string
+          description: How often to take
+        stock:
+          type: integer
+          description: Number of pills in stock
+        low_stock_threshold:
+          type: integer
+          description: Alert threshold
+        time_windows:
+          type: array
+          items:
+            type: object
+            properties:
+              hour:
+                type: integer
+                minimum: 0
+                maximum: 23
+              minute:
+                type: integer
+                minimum: 0
+                maximum: 59
+        active:
+          type: boolean
+          default: true
+
+    TrackingRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        medicine_id:
+          type: string
+        date:
+          type: string
+          format: date
+        taken:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+        notes:
+          type: string
+
+    Meta:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: When the response was generated
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: object
+              description: Additional error details
+        meta:
+          $ref: '#/components/schemas/Meta'
+
+    PaginatedMedicineList:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Medicine'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+            count:
+              type: integer
+            page:
+              type: integer
+            per_page:
+              type: integer
+            total_pages:
+              type: integer
+            timestamp:
+              type: string
+              format: date-time
+
+    PaginatedTrackingList:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackingRecord'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+            count:
+              type: integer
+            page:
+              type: integer
+            per_page:
+              type: integer
+            total_pages:
+              type: integer
+            timestamp:
+              type: string
+              format: date-time
