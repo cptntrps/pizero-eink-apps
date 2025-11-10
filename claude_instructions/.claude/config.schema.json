@@ -1,0 +1,315 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Claude Project Configuration",
+  "description": "Configuration file for Claude Code project-specific settings",
+  "type": "object",
+  "properties": {
+    "projectType": {
+      "type": "string",
+      "description": "Type of project (overrides auto-detection)",
+      "enum": [
+        "nextjs-webapp",
+        "express-api",
+        "react-native-mobile",
+        "flutter-mobile",
+        "fastapi-python",
+        "custom"
+      ]
+    },
+    "commands": {
+      "type": "object",
+      "description": "Custom commands for common operations",
+      "properties": {
+        "test": {
+          "type": "string",
+          "description": "Command to run tests",
+          "examples": ["npm test", "pytest", "flutter test"]
+        },
+        "lint": {
+          "type": "string",
+          "description": "Command to run linter",
+          "examples": ["npm run lint", "flake8 .", "flutter analyze"]
+        },
+        "typecheck": {
+          "type": "string",
+          "description": "Command to run type checking",
+          "examples": ["tsc --noEmit", "mypy app/", "npm run typecheck"]
+        },
+        "build": {
+          "type": "string",
+          "description": "Command to build the project",
+          "examples": ["npm run build", "flutter build", "python -m build"]
+        },
+        "format": {
+          "type": "string",
+          "description": "Command to format code",
+          "examples": ["npm run format", "black .", "dart format ."]
+        },
+        "dev": {
+          "type": "string",
+          "description": "Command to start development server",
+          "examples": ["npm run dev", "uvicorn app.main:app --reload"]
+        }
+      }
+    },
+    "qualityGates": {
+      "type": "object",
+      "description": "Quality standards and thresholds",
+      "properties": {
+        "minCoverage": {
+          "type": "number",
+          "description": "Minimum test coverage percentage (0-100)",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 70
+        },
+        "enforceTypes": {
+          "type": "boolean",
+          "description": "Require type checking to pass",
+          "default": true
+        },
+        "enforceNoWarnings": {
+          "type": "boolean",
+          "description": "Treat linting warnings as errors",
+          "default": false
+        },
+        "maxComplexity": {
+          "type": "number",
+          "description": "Maximum cyclomatic complexity allowed",
+          "minimum": 1,
+          "default": 10
+        },
+        "requiredTests": {
+          "type": "array",
+          "description": "Categories of tests that must exist",
+          "items": {
+            "type": "string",
+            "enum": ["unit", "integration", "e2e"]
+          },
+          "default": ["unit"]
+        }
+      }
+    },
+    "workflowDepth": {
+      "type": "string",
+      "description": "Level of workflow guidance",
+      "enum": ["prescriptive", "framework", "principle"],
+      "default": "framework"
+    },
+    "autonomyPreferences": {
+      "type": "object",
+      "description": "Configure Claude's autonomy levels",
+      "properties": {
+        "autoFixLinting": {
+          "type": "boolean",
+          "description": "Automatically fix linting errors",
+          "default": true
+        },
+        "autoFixFormatting": {
+          "type": "boolean",
+          "description": "Automatically format code",
+          "default": true
+        },
+        "askBeforeRefactoring": {
+          "type": "boolean",
+          "description": "Ask before refactoring code",
+          "default": false
+        },
+        "askBeforeNewDependencies": {
+          "type": "boolean",
+          "description": "Ask before adding new dependencies",
+          "default": true
+        },
+        "askBeforeSchemaChanges": {
+          "type": "boolean",
+          "description": "Ask before database schema changes",
+          "default": true
+        },
+        "askBeforeBreakingChanges": {
+          "type": "boolean",
+          "description": "Ask before making breaking API changes",
+          "default": true
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "description": "Security-related configuration",
+      "properties": {
+        "requireAuthentication": {
+          "type": "boolean",
+          "description": "All protected endpoints must have authentication",
+          "default": true
+        },
+        "enforceHttps": {
+          "type": "boolean",
+          "description": "Require HTTPS in production",
+          "default": true
+        },
+        "scanDependencies": {
+          "type": "boolean",
+          "description": "Run security scans on dependencies",
+          "default": true
+        },
+        "maxVulnerabilityLevel": {
+          "type": "string",
+          "description": "Maximum allowed vulnerability severity",
+          "enum": ["none", "low", "medium", "high", "critical"],
+          "default": "medium"
+        }
+      }
+    },
+    "testing": {
+      "type": "object",
+      "description": "Testing configuration",
+      "properties": {
+        "framework": {
+          "type": "string",
+          "description": "Testing framework in use",
+          "examples": ["jest", "pytest", "flutter_test", "vitest"]
+        },
+        "testPattern": {
+          "type": "string",
+          "description": "Glob pattern for test files",
+          "examples": ["**/*.test.ts", "tests/**/*.py", "**/*_test.dart"]
+        },
+        "coverageThreshold": {
+          "type": "object",
+          "description": "Coverage thresholds by type",
+          "properties": {
+            "global": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "statements": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "branches": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "functions": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "lines": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        }
+      }
+    },
+    "git": {
+      "type": "object",
+      "description": "Git workflow configuration",
+      "properties": {
+        "commitMessageFormat": {
+          "type": "string",
+          "description": "Commit message format",
+          "enum": ["conventional", "custom"],
+          "default": "conventional"
+        },
+        "branchPrefix": {
+          "type": "string",
+          "description": "Prefix for feature branches",
+          "examples": ["feature/", "feat/", ""]
+        },
+        "requirePRForMain": {
+          "type": "boolean",
+          "description": "Require pull request for main branch",
+          "default": true
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "description": "Project-specific paths",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Source code directory",
+          "examples": ["src", "app", "lib"]
+        },
+        "tests": {
+          "type": "string",
+          "description": "Test directory",
+          "examples": ["tests", "test", "__tests__"]
+        },
+        "build": {
+          "type": "string",
+          "description": "Build output directory",
+          "examples": ["dist", "build", ".next"]
+        }
+      }
+    },
+    "excludePatterns": {
+      "type": "array",
+      "description": "Patterns to exclude from analysis",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        ["node_modules", "dist", ".next", "build"],
+        ["venv", "__pycache__", "*.pyc"],
+        ["build", ".dart_tool"]
+      ]
+    },
+    "customInstructions": {
+      "type": "string",
+      "description": "Additional project-specific instructions for Claude",
+      "examples": [
+        "This project uses a custom authentication system. Always check auth/README.md before implementing auth features.",
+        "Follow the API design patterns in docs/api-patterns.md"
+      ]
+    }
+  },
+  "examples": [
+    {
+      "projectType": "nextjs-webapp",
+      "commands": {
+        "test": "npm test",
+        "lint": "npm run lint",
+        "typecheck": "tsc --noEmit",
+        "build": "npm run build"
+      },
+      "qualityGates": {
+        "minCoverage": 80,
+        "enforceTypes": true,
+        "enforceNoWarnings": false
+      },
+      "autonomyPreferences": {
+        "autoFixLinting": true,
+        "askBeforeRefactoring": false,
+        "askBeforeNewDependencies": true
+      }
+    },
+    {
+      "projectType": "fastapi-python",
+      "commands": {
+        "test": "pytest",
+        "lint": "flake8 app/",
+        "typecheck": "mypy app/",
+        "format": "black app/"
+      },
+      "qualityGates": {
+        "minCoverage": 70,
+        "enforceTypes": true
+      },
+      "testing": {
+        "framework": "pytest",
+        "testPattern": "tests/**/*.py",
+        "coverageThreshold": {
+          "global": 70,
+          "statements": 70
+        }
+      }
+    }
+  ]
+}
